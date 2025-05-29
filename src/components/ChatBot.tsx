@@ -12,7 +12,7 @@ interface Message {
   timestamp: Date;
 }
 
-const MISTRAL_API_KEY = "1idxGg6fT5ysEM0ngiQxrEjMyqPbmdI5"; // Replace with your actual key
+const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
 
 export const ChatBot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
