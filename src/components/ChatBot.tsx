@@ -12,13 +12,13 @@ interface Message {
   timestamp: Date;
 }
 
-const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
+const MISTRAL_API_KEY = import.meta.env.VITE_MISTRAL_API_KEY;
 
 export const ChatBot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hello! I’m your AI financial consultant powered by Mistral. Ask me anything about reconciliation, finance strategies, budgeting, or financial analysis.",
+      text: "Hello! I’m your AI financial consultant. Ask me anything about reconciliation, finance strategies, budgeting, or financial analysis.",
       sender: 'bot',
       timestamp: new Date()
     }
@@ -41,30 +41,37 @@ export const ChatBot: React.FC = () => {
   }, [messages]);
 
   const callMistralAPI = async (userMessage: string): Promise<string> => {
+    if (!MISTRAL_API_KEY) {
+      console.error("Mistral API key or Agent ID is not set!");
+      return "API configuration is missing. Please check your environment variables.";
+    }
+
     try {
       const response = await fetch("https://api.mistral.ai/v1/chat/completions", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${MISTRAL_API_KEY}`
+          "Authorization": `Bearer ${MISTRAL_API_KEY}`
         },
         body: JSON.stringify({
-          model: "mistral-large-latest",
-          messages: [
+          "model": "mistral-large-latest",
+          "messages": [
             {
-              role: "system",
-              content: `You are a financial expert AI consultant. Answer user questions with professional, concise financial advice including accounting, investment, reconciliation, and strategy.`
+              "role": "user",
+              "content": userMessage
             },
             {
-              role: "user",
-              content: userMessage
+              "role": "system",
+              "content": "You are a financial expert AI consultant. Answer user questions with professional, concise financial advice including accounting, investment, reconciliation, and strategy."
             }
-          ]
+          ],
+          "max_tokens": 256,
+          "temperature": 0.7
         })
       });
 
       const data = await response.json();
-      console.log(data)
+      console.log(data);
       return data.choices?.[0]?.message?.content || "Sorry, I couldn’t generate a response at the moment.";
     } catch (error) {
       console.error('Mistral API error:', error);
