@@ -13,7 +13,7 @@ interface Message {
   timestamp: Date;
 }
 
-const MISTRAL_API_KEY = import.meta.env.VITE_MISTRAL_API_KEY;
+const MISTRAL_API_KEY = process.env.VITE_MISTRAL_API_KEY;
 
 export const ChatBot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
