@@ -13,7 +13,7 @@ interface Message {
   timestamp: Date;
 }
 
-const MISTRAL_API_KEY = process.env.VITE_MISTRAL_API_KEY;
+const MISTRAL_API_KEY = import.meta.env.VITE_MISTRAL_API_KEY;
 
 export const ChatBot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
@@ -147,7 +147,7 @@ export const ChatBot: React.FC = () => {
           <Bot className="h-5 w-5 text-green-600" />
           Financial AI Consultant
           <span className="text-sm text-green-600 bg-green-100 px-2 py-1 rounded-full">
-            Mistral AI
+            AI
           </span>
         </CardTitle>
       </CardHeader>
