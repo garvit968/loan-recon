@@ -209,7 +209,7 @@ const Index = () => {
                 
                 {showChatBot && (
                   <div className="mt-4">
-                    <ChatBot />
+                    <ChatBot reconciliationResults={reconciliationResults} />
                   </div>
                 )}
               </div>
