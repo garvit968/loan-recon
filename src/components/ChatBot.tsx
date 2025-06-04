@@ -13,13 +13,27 @@ interface Message {
   timestamp: Date;
 }
 
+interface ReconciliationResult {
+  firm: string;
+  total_lent: number;
+  total_paid: number;
+  net_balance: number;
+  status: 'Balanced' | 'Overpaid' | 'Underpaid';
+}
+
+interface ChatBotProps {
+  reconciliationResults?: ReconciliationResult[];
+}
+
 const MISTRAL_API_KEY = import.meta.env.VITE_MISTRAL_API_KEY;
 
-export const ChatBot: React.FC = () => {
+export const ChatBot: React.FC<ChatBotProps> = ({ reconciliationResults = [] }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hello! I'm your AI financial consultant. Ask me anything about reconciliation, finance strategies, budgeting, or financial analysis.",
+      text: reconciliationResults.length > 0 
+        ? "Hello! I can see your reconciliation results. I'm ready to help you analyze the data and provide insights about your loan portfolio. What would you like to know?"
+        : "Hello! I'm your AI financial consultant. Ask me anything about reconciliation, finance strategies, budgeting, or financial analysis.",
       sender: 'bot',
       timestamp: new Date()
     }
@@ -27,6 +41,35 @@ export const ChatBot: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  // Update welcome message when reconciliation results change
+  useEffect(() => {
+    if (reconciliationResults.length > 0) {
+      setMessages(prev => {
+        const newMessage: Message = {
+          id: `analysis-${Date.now()}`,
+          text: `I've analyzed your reconciliation data for ${reconciliationResults.length} firms. Here are some key insights:
+
+📊 **Portfolio Summary:**
+• Total firms processed: ${reconciliationResults.length}
+• Balanced firms: ${reconciliationResults.filter(r => r.status === 'Balanced').length}
+• Overpaid firms: ${reconciliationResults.filter(r => r.status === 'Overpaid').length}
+• Underpaid firms: ${reconciliationResults.filter(r => r.status === 'Underpaid').length}
+
+💰 **Financial Overview:**
+• Total lent: $${reconciliationResults.reduce((sum, r) => sum + r.total_lent, 0).toLocaleString()}
+• Total received: $${reconciliationResults.reduce((sum, r) => sum + r.total_paid, 0).toLocaleString()}
+• Net difference: $${reconciliationResults.reduce((sum, r) => sum + r.net_balance, 0).toLocaleString()}
+
+Ask me for detailed analysis, risk assessment, or recommendations!`,
+          sender: 'bot',
+          timestamp: new Date()
+        };
+        
+        return [...prev, newMessage];
+      });
+    }
+  }, [reconciliationResults]);
 
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
@@ -46,10 +89,27 @@ export const ChatBot: React.FC = () => {
       console.error("Mistral API key is not set!");
       toast({
         title: "API Configuration Missing",
-        description: "Please set your Mistral API key in environment variables",
+        description: "Please set your API key in environment variables",
         variant: "destructive",
       });
       return "API configuration is missing. Please check your environment variables.";
+    }
+
+    // Prepare context about reconciliation data
+    let dataContext = "";
+    if (reconciliationResults.length > 0) {
+      dataContext = `\n\nCurrent reconciliation data context:
+- Total firms: ${reconciliationResults.length}
+- Balanced: ${reconciliationResults.filter(r => r.status === 'Balanced').length}
+- Overpaid: ${reconciliationResults.filter(r => r.status === 'Overpaid').length}
+- Underpaid: ${reconciliationResults.filter(r => r.status === 'Underpaid').length}
+- Total lent: $${reconciliationResults.reduce((sum, r) => sum + r.total_lent, 0)}
+- Total paid: $${reconciliationResults.reduce((sum, r) => sum + r.total_paid, 0)}
+- Net balance: $${reconciliationResults.reduce((sum, r) => sum + r.net_balance, 0)}
+
+Firm details: ${reconciliationResults.map(r => 
+  `${r.firm}: Lent $${r.total_lent}, Paid $${r.total_paid}, Balance $${r.net_balance} (${r.status})`
+).join('; ')}`;
     }
 
     try {
@@ -64,7 +124,9 @@ export const ChatBot: React.FC = () => {
           "messages": [
             {
               "role": "system",
-              "content": "You are a financial expert AI consultant specializing in loan reconciliation and financial analysis. Answer user questions with professional, concise financial advice including accounting, investment, reconciliation, and strategy. Keep responses clear and actionable."
+              "content": `You are a financial expert AI consultant specializing in loan reconciliation and financial analysis. Answer user questions with professional, concise financial advice including accounting, investment, reconciliation, and strategy. Keep responses clear and actionable.
+              
+              ${dataContext ? `You have access to current reconciliation data. Use this data to provide specific insights, identify patterns, assess risks, and make recommendations based on the actual financial positions shown.${dataContext}` : ''}`
             },
             {
               "role": "user",
@@ -81,13 +143,13 @@ export const ChatBot: React.FC = () => {
       }
 
       const data = await response.json();
-      console.log('Mistral API response:', data);
+      console.log('API response:', data);
       return data.choices?.[0]?.message?.content || "Sorry, I couldn't generate a response at the moment.";
     } catch (error) {
-      console.error('Mistral API error:', error);
+      console.error('API error:', error);
       toast({
         title: "API Error",
-        description: "Failed to get response from Mistral AI. Please try again.",
+        description: "Failed to get response from AI Assistant. Please try again.",
         variant: "destructive",
       });
       return "Sorry, I'm facing technical difficulties. Please try again.";
@@ -147,7 +209,7 @@ export const ChatBot: React.FC = () => {
           <Bot className="h-5 w-5 text-green-600" />
           Financial AI Consultant
           <span className="text-sm text-green-600 bg-green-100 px-2 py-1 rounded-full">
-            AI
+            Financial AI Assistant
           </span>
         </CardTitle>
       </CardHeader>
