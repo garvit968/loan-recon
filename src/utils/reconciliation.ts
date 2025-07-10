@@ -1,4 +1,3 @@
-
 interface LendingRecord {
   firm: string;
   loan_amount: number | string;
@@ -17,6 +16,17 @@ interface ReconciliationResult {
   status: 'Balanced' | 'Overpaid' | 'Underpaid';
 }
 
+// Utility function to parse currency strings or numbers
+const parseCurrency = (currency: string | number): number => {
+  if (typeof currency === 'number') {
+    return currency;
+  }
+  // Remove any non-numeric characters except for decimal and minus sign
+  const numericString = currency.replace(/[^\d.-]/g, '');
+  const parsedValue = parseFloat(numericString);
+  return isNaN(parsedValue) ? 0 : parsedValue;
+};
+
 export const reconcileLoans = (
   lendings: LendingRecord[], 
   settlements: SettlementRecord[]
@@ -25,14 +35,14 @@ export const reconcileLoans = (
   const lentSummary = new Map<string, number>();
   lendings.forEach(record => {
     const current = lentSummary.get(record.firm) || 0;
-    lentSummary.set(record.firm, current + Number(record.loan_amount) || 0);
+    lentSummary.set(record.firm, current + parseCurrency(record.loan_amount));
   });
 
   // Summarize settlements by firm
   const paidSummary = new Map<string, number>();
   settlements.forEach(record => {
     const current = paidSummary.get(record.firm) || 0;
-    paidSummary.set(record.firm, current + Number(record.payment_amount) || 0);
+    paidSummary.set(record.firm, current + parseCurrency(record.payment_amount));
   });
 
   // Get all unique firms
