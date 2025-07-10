@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,15 +14,25 @@ import { Download, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 interface ReconciliationResult {
   firm: string;
-  total_lent: number;
-  total_paid: number;
-  net_balance: number;
+  total_lent: string | number;  // Changed to string to handle INR format as well
+  total_paid: string | number;  // Changed to string to handle INR format as well
+  net_balance: string | number;  // Changed to string to handle INR format as well
   status: 'Balanced' | 'Overpaid' | 'Underpaid';
 }
 
 interface ReconciliationResultsProps {
   results: ReconciliationResult[];
 }
+
+const parseCurrency = (currencyString: string | number) => {
+  // If the input is already a number, just return it
+  if (typeof currencyString === 'number') {
+    return currencyString;
+  }
+  // If it's a string like "₹100.00" or "100.00 INR", remove INR and non-numeric characters
+  const numberString = currencyString.replace(/[^\d.-]/g, ''); // Remove non-numeric characters (except dot and minus)
+  return parseFloat(numberString) || 0;  // Parse to number and default to 0 if invalid
+};
 
 export const ReconciliationResults: React.FC<ReconciliationResultsProps> = ({ results }) => {
   const [sortBy, setSortBy] = useState<'firm' | 'net_balance'>('firm');
@@ -40,8 +49,8 @@ export const ReconciliationResults: React.FC<ReconciliationResultsProps> = ({ re
     }
     
     return sortOrder === 'asc' 
-      ? (aValue as number) - (bValue as number)
-      : (bValue as number) - (aValue as number);
+      ? (parseCurrency(aValue) as number) - (parseCurrency(bValue) as number)
+      : (parseCurrency(bValue) as number) - (parseCurrency(aValue) as number);
   });
 
   const handleSort = (column: 'firm' | 'net_balance') => {
@@ -83,9 +92,9 @@ export const ReconciliationResults: React.FC<ReconciliationResultsProps> = ({ re
       headers.join(','),
       ...results.map(result => [
         result.firm,
-        result.total_lent,
-        result.total_paid,
-        result.net_balance,
+        parseCurrency(result.total_lent),
+        parseCurrency(result.total_paid),
+        parseCurrency(result.net_balance),
         result.status
       ].join(','))
     ].join('\n');
@@ -139,16 +148,16 @@ export const ReconciliationResults: React.FC<ReconciliationResultsProps> = ({ re
                 <TableRow key={index} className="hover:bg-gray-50 transition-colors">
                   <TableCell className="font-medium">{result.firm}</TableCell>
                   <TableCell className="text-right font-mono">
-                    ₹{result.total_lent.toLocaleString('en-IN')}
+                    ₹{parseCurrency(result.total_lent).toLocaleString('en-IN')}
                   </TableCell>
                   <TableCell className="text-right font-mono">
-                    ₹{result.total_paid.toLocaleString('en-IN')}
+                    ₹{parseCurrency(result.total_paid).toLocaleString('en-IN')}
                   </TableCell>
                   <TableCell className={`text-right font-mono font-semibold ${
-                    result.net_balance > 0 ? 'text-blue-600' : 
-                    result.net_balance < 0 ? 'text-red-600' : 'text-green-600'
+                    parseCurrency(result.net_balance) > 0 ? 'text-blue-600' : 
+                    parseCurrency(result.net_balance) < 0 ? 'text-red-600' : 'text-green-600'
                   }`}>
-                    ₹{result.net_balance.toLocaleString('en-IN')}
+                    ₹{parseCurrency(result.net_balance).toLocaleString('en-IN')}
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-2">
