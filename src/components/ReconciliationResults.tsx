@@ -139,16 +139,16 @@ export const ReconciliationResults: React.FC<ReconciliationResultsProps> = ({ re
                 <TableRow key={index} className="hover:bg-gray-50 transition-colors">
                   <TableCell className="font-medium">{result.firm}</TableCell>
                   <TableCell className="text-right font-mono">
-                    ₹{result.total_lent.toLocaleString()}
+                    ₹{result.total_lent.toLocaleString('en-IN')}
                   </TableCell>
                   <TableCell className="text-right font-mono">
-                    ₹{result.total_paid.toLocaleString()}
+                    ₹{result.total_paid.toLocaleString('en-IN')}
                   </TableCell>
                   <TableCell className={`text-right font-mono font-semibold ${
                     result.net_balance > 0 ? 'text-blue-600' : 
                     result.net_balance < 0 ? 'text-red-600' : 'text-green-600'
                   }`}>
-                    ₹{result.net_balance.toLocaleString()}
+                    ₹{result.net_balance.toLocaleString('en-IN')}
                   </TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-2">
