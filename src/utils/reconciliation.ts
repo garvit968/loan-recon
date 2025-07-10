@@ -1,12 +1,12 @@
 
 interface LendingRecord {
   firm: string;
-  loan_amount: number;
+  loan_amount: number | string;
 }
 
 interface SettlementRecord {
   firm: string;
-  payment_amount: number;
+  payment_amount: number | string;
 }
 
 interface ReconciliationResult {
@@ -25,14 +25,14 @@ export const reconcileLoans = (
   const lentSummary = new Map<string, number>();
   lendings.forEach(record => {
     const current = lentSummary.get(record.firm) || 0;
-    lentSummary.set(record.firm, current + record.loan_amount);
+    lentSummary.set(record.firm, current + Number(record.loan_amount) || 0);
   });
 
   // Summarize settlements by firm
   const paidSummary = new Map<string, number>();
   settlements.forEach(record => {
     const current = paidSummary.get(record.firm) || 0;
-    paidSummary.set(record.firm, current + record.payment_amount);
+    paidSummary.set(record.firm, current + Number(record.payment_amount) || 0);
   });
 
   // Get all unique firms
