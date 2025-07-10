@@ -106,7 +106,7 @@ const Index = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-blue-600">
-                  ${totalLent.toLocaleString()}
+                  ₹{totalLent.toLocaleString()}
                 </div>
               </CardContent>
             </Card>
@@ -118,7 +118,7 @@ const Index = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-600">
-                  ${totalPaid.toLocaleString()}
+                  ₹{totalPaid.toLocaleString()}
                 </div>
               </CardContent>
             </Card>
@@ -130,7 +130,7 @@ const Index = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-purple-600">
-                  ${(totalPaid - totalLent).toLocaleString()}
+                  ₹{(totalPaid - totalLent).toLocaleString()}
                 </div>
               </CardContent>
             </Card>
