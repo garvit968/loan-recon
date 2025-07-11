@@ -45,10 +45,15 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         const value = typeof valueRaw === 'string' ? valueRaw.trim() : valueRaw;
 
         if (header.toLowerCase().includes('amount')) {
-          const parsed = parseInt(value);
+          const cleaned = typeof value === 'string'
+            ? value.replace(/,/g, '').replace(/INR/i, '').trim()
+            : value;
+
+          const parsed = parseFloat(cleaned);
           if (isNaN(parsed)) {
             throw new Error(`Invalid amount in ${source}, line ${i + 2}: "${value}"`);
           }
+
           record[header] = parsed;
         } else if (header === 'company_name') {
           if (!value || typeof value !== 'string') {
@@ -68,7 +73,6 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
 
   const handleFileSelect = async (file: File) => {
     const fileExt = file.name.split('.').pop()?.toLowerCase();
-    const fileNameWithoutExt = file.name.split('.')[0];
 
     try {
       let rawData: any[] = [];
